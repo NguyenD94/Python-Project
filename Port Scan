@@ -1,0 +1,67 @@
+import socket
+import datetime
+
+def _HostCheck(_IP):
+    try:
+        socket.inet_pton(socket.AF_INET, _IP)
+        return True
+    except socket.error:
+        return False
+    
+def _PortScan(_Host, _BegPort, _EndPort):
+    _Opened = []
+    _Excepts = []
+    
+    for _Port in range(_BegPort, _EndPort + 1):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            _Result = s.connect_ex((_Host, _Port))
+            if _Result == 0:
+                _Opened.append(_Port)
+        except Exception as i:
+            _Excepts.append(f"Error on port {_Port}: {str(i)}")
+        print("---")
+
+    return _Opened, _Excepts
+
+def main():
+    _File = open("Port Scan.txt","w")
+    _Host = input("Enter the host IP to scan: ")
+    while not _HostCheck(_Host):
+        print("Invalid IP address. Please try again.")
+        _Host = input("Enter the host IP to scan: ")
+
+    _BegPort = int(input("Enter the beginning port: "))
+    _EndPort = int(input("Enter the ending port: "))
+
+    _InitTime = datetime.datetime.now()
+    _StrInitTime = _InitTime.strftime("%m/%d/%Y %H:%M:%S")
+    _StartTime = datetime.datetime.now()
+    _StrStartTime = _StartTime.strftime("%m/%d/%Y %H:%M:%S")
+    print("\nInitializing port scan. Please wait as this could take a moment. ")
+    print("Port scan initialized at: ",_StrInitTime)
+    _Opened, _Excepts = _PortScan(_Host, _BegPort, _EndPort)
+    _EndTime = datetime.datetime.now()
+    _StrEndTime = _EndTime.strftime("%m/%d/%Y %H:%M:%S")
+    _TotTime = _EndTime - _StartTime
+    print("\nPort scan completed at: ",_StrEndTime)
+    print("\nTotal time elapsed: ")
+    print(_TotTime)
+
+    _File.write(f"Port scanning results for host: {_Host}\n")
+    _File.write(f"Initialization time: {_InitTime}\n")
+    _File.write(f"Scanning started at: {_StartTime}\n")
+    _File.write(f"Scanning ended at: {_EndTime}\n")
+    _File.write(f"Total time taken (seconds): {_TotTime.total_seconds()}\n")
+
+    if _Opened:
+        _File.write("\nOpened ports:\n")
+        for _Port in _Opened:
+            _File.write(f"{_Port}\n")
+
+    if _Excepts:
+        _File.write("\nExceptions:\n")
+        for exception in _Excepts:
+            _File.write(f"{exception}\n")
+    _File.close()
+main()
